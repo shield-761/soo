@@ -4,7 +4,7 @@ import requests
 import xml.etree.ElementTree as ET
 
 # 👉 발급받은 API 키를 여기에 입력하세요
-API_KEY = st.secrets["tJYB/P5zTt6sJJL5OKg9sf3VpXO=nw/73SYo9Q8U3U4="]
+API_KEY = st.secrets["API_KEY"]
 
 def search_patents(keyword, num_of_rows=20):
     url = "http://plus.kipris.or.kr/openapi/rest/PatentInfoSearchService/getWordSearch"
