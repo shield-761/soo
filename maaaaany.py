@@ -3,6 +3,7 @@ import pandas as pd
 import requests
 import xml.etree.ElementTree as ET
 
+API_KEY = "tJYB/P5zTt6sJJL5OKg9sf3VpXO=nw/73SYo9Q8U3U4="
 # 👉 발급받은 API 키를 여기에 입력하세요
 API_KEY = st.secrets["API_KEY"]
 
