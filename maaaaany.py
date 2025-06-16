@@ -19,9 +19,20 @@ st.markdown("CSV 파일을 업로드하여 특허 데이터를 검색하고 분�
 uploaded_file = st.file_uploader("📁 특허 CSV 파일을 업로드하세요", type=["csv"])
 
 if uploaded_file:
-    try:
-        df_csv = pd.read_csv(uploaded_file)
+    df_csv = None
+    tried_encodings = ['utf-8', 'cp949', 'euc-kr']
+    for enc in tried_encodings:
+        try:
+            df_csv = pd.read_csv(uploaded_file, encoding=enc)
+            st.success(f"✅ CSV 파일을 성공적으로 읽었습니다. (인코딩: {enc})")
+            break
+        except UnicodeDecodeError:
+            continue
+        except Exception as e:
+            st.error(f"❌ CSV 파일 처리 중 예기치 못한 오류 발생: {e}")
+            break
 
+    if df_csv is not None:
         keyword = st.text_input("🔎 검색할 특허 키워드를 입력하세요", value="인공지능")
 
         if st.button("🔍 특허 검색"):
@@ -41,7 +52,7 @@ if uploaded_file:
                     st.warning("⚠️ '출원일' 컬럼이 없어 연도별 분석은 불가합니다.")
             else:
                 st.warning("🔍 해당 키워드에 대한 결과가 없습니다.")
-    except Exception as e:
-        st.error(f"❌ CSV 파일을 읽는 중 오류 발생: {e}")
+    else:
+        st.error("❌ CSV 파일을 읽을 수 없습니다. UTF-8, CP949, EUC-KR 인코딩인지 확인해주세요.")
 else:
     st.info("📌 먼저 CSV 파일을 업로드해주세요.")
