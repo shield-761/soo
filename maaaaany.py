@@ -1,13 +1,34 @@
 import streamlit as st
 import pandas as pd
 
-# ✅ 특허 검색 함수
+# ✅ 특허 검색 함수 - 컬럼명 자동 인식 + 오류 방지
 def search_patents_from_csv(df, keyword, num_of_rows=20):
-    filtered = df[
-        df['발명명칭'].astype(str).str.contains(keyword, na=False) |
-        df['요약'].astype(str).str.contains(keyword, na=False)
-    ].copy()
-    return filtered.head(num_of_rows)
+    title_col = None
+    summary_col = None
+    col_list = df.columns.tolist()
+
+    for candidate in ['발명명칭', '명칭', '특허명', 'title', 'Title']:
+        if candidate in col_list:
+            title_col = candidate
+            break
+
+    for candidate in ['요약', '내용', '개요', 'summary', 'Summary']:
+        if candidate in col_list:
+            summary_col = candidate
+            break
+
+    if title_col or summary_col:
+        cond = pd.Series([False] * len(df))
+        if title_col:
+            cond |= df[title_col].astype(str).str.contains(keyword, na=False, case=False)
+        if summary_col:
+            cond |= df[summary_col].astype(str).str.contains(keyword, na=False, case=False)
+        filtered = df[cond].copy()
+        return filtered.head(num_of_rows)
+    else:
+        st.error("❌ '발명명칭' 또는 '요약' 컬럼이 존재하지 않습니다.")
+        st.write("📋 현재 CSV의 컬럼 목록:", col_list)
+        return pd.DataFrame()
 
 # ✅ Streamlit 앱 시작
 st.set_page_config(page_title="지능정보기술 특허 출원 분석", layout="wide")
@@ -15,14 +36,14 @@ st.title("💡 지능정보기술 관련 특허 출원 분석 웹앱")
 st.markdown("CSV 파일을 업로드하여 특허 데이터를 검색하고 분석합니다.")
 
 # ✅ CSV 업로드
-uploaded_file = st.file_uploader("📁 특허 CSV 파일을 업로드하세요", type=["csv", "xls", "xlsx"])
+uploaded_file = st.file_uploader("📁 특허 CSV 또는 Excel 파일을 업로드하세요", type=["csv", "xls", "xlsx"])
 
 if uploaded_file:
     df_csv = None
     preview_text = uploaded_file.read(500).decode('utf-8', errors='ignore')
     st.subheader("📄 파일 내용 미리보기")
     st.code(preview_text)
-    uploaded_file.seek(0)  # 파일 포인터 초기화
+    uploaded_file.seek(0)
 
     tried_encodings = ['utf-8', 'cp949', 'euc-kr']
     tried_separators = [',', ';', '\t']
@@ -38,11 +59,10 @@ if uploaded_file:
                     success = True
                     break
             except:
-                uploaded_file.seek(0)  # 실패하면 포인터 초기화하고 다시 시도
+                uploaded_file.seek(0)
         if success:
             break
 
-    # Excel fallback
     if not success:
         try:
             df_csv = pd.read_excel(uploaded_file)
@@ -51,7 +71,6 @@ if uploaded_file:
         except Exception as e:
             st.error(f"❌ CSV/엑셀 파일 모두 실패: {e}")
 
-    # 검색 기능
     if df_csv is not None:
         keyword = st.text_input("🔍 검색할 특허 키워드를 입력하세요", value="인공지능")
 
@@ -73,6 +92,6 @@ if uploaded_file:
             else:
                 st.warning("🔍 해당 키워드에 대한 결과가 없습니다.")
     else:
-        st.error("❌ CSV 파일을 열 수 없습니다. UTF-8/CP949/EUC-KR 인코딩 또는 표준 CSV 형식인지 확인해주세요.")
+        st.error("❌ CSV 또는 엑셀 파일을 읽을 수 없습니다. 파일 인코딩과 형식을 확인해 주세요.")
 else:
-    st.info("📌 먼저 특허 데이터 CSV 또는 Excel 파일을 업로드해주세요.")
+    st.info("📌 먼저 특허 데이터 CSV 또는 Excel 파일을 업로드해 주세요.")
