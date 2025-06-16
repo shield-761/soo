@@ -10,12 +10,14 @@ def search_patents_from_csv(df, keyword, num_of_rows=20):
     title_col = None
     summary_col = None
 
-    for candidate in ['발명명칭', '명칭', '특허명', 'title', 'Title']:
+    # ➕ title 후보 컬럼 확장
+    for candidate in ['발명명칭', '명칭', '특허명', 'title', 'Title', '제공 제조AI데이터셋 명']:
         if candidate in col_list:
             title_col = candidate
             break
 
-    for candidate in ['요약', '내용', '개요', 'summary', 'Summary']:
+    # ➕ summary 후보 컬럼 확장
+    for candidate in ['요약', '내용', '개요', 'summary', 'Summary', '제조AI데이터셋 내용']:
         if candidate in col_list:
             summary_col = candidate
             break
