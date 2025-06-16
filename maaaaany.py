@@ -1,11 +1,14 @@
 import streamlit as st
 import pandas as pd
 
-# ✅ 특허 검색 함수 - 컬럼명 자동 인식 + 오류 방지
+# ✅ 특허 검색 함수 - 컬럼명 유연하게 인식
 def search_patents_from_csv(df, keyword, num_of_rows=20):
+    # 컬럼명 전처리
+    df.columns = df.columns.str.strip().str.replace('\ufeff', '', regex=False)
+
+    col_list = df.columns.tolist()
     title_col = None
     summary_col = None
-    col_list = df.columns.tolist()
 
     for candidate in ['발명명칭', '명칭', '특허명', 'title', 'Title']:
         if candidate in col_list:
@@ -33,9 +36,9 @@ def search_patents_from_csv(df, keyword, num_of_rows=20):
 # ✅ Streamlit 앱 시작
 st.set_page_config(page_title="지능정보기술 특허 출원 분석", layout="wide")
 st.title("💡 지능정보기술 관련 특허 출원 분석 웹앱")
-st.markdown("CSV 파일을 업로드하여 특허 데이터를 검색하고 분석합니다.")
+st.markdown("CSV 또는 Excel 파일을 업로드하여 특허 데이터를 검색하고 분석합니다.")
 
-# ✅ CSV 업로드
+# ✅ 파일 업로드
 uploaded_file = st.file_uploader("📁 특허 CSV 또는 Excel 파일을 업로드하세요", type=["csv", "xls", "xlsx"])
 
 if uploaded_file:
@@ -54,6 +57,7 @@ if uploaded_file:
             try:
                 df = pd.read_csv(uploaded_file, encoding=enc, sep=sep)
                 if df.shape[1] > 1:
+                    df.columns = df.columns.str.strip().str.replace('\ufeff', '', regex=False)
                     df_csv = df
                     st.success(f"✅ CSV 파일을 성공적으로 열었습니다. (인코딩: {enc}, 구분자: {repr(sep)})")
                     success = True
@@ -65,14 +69,17 @@ if uploaded_file:
 
     if not success:
         try:
-            df_csv = pd.read_excel(uploaded_file)
+            df = pd.read_excel(uploaded_file)
+            df.columns = df.columns.str.strip().str.replace('\ufeff', '', regex=False)
+            df_csv = df
             st.success("✅ 엑셀 파일로 인식하여 성공적으로 열었습니다.")
             success = True
         except Exception as e:
             st.error(f"❌ CSV/엑셀 파일 모두 실패: {e}")
 
     if df_csv is not None:
-        keyword = st.text_input("🔍 검색할 특허 키워드를 입력하세요", value="인공지능")
+        st.write("📋 실제 컬럼명:", df_csv.columns.tolist())
+        keyword = st.text_input("🔎 검색할 특허 키워드를 입력하세요", value="인공지능")
 
         if st.button("🔍 특허 검색"):
             with st.spinner("📂 데이터를 불러오는 중..."):
@@ -82,9 +89,9 @@ if uploaded_file:
                 st.success(f"✅ {len(result_df)}건의 특허 데이터를 가져왔습니다.")
                 st.dataframe(result_df)
 
-                if '출원일' in result_df.columns:
-                    result_df['출원연도'] = result_df['출원일'].astype(str).str[:4]
-                    year_counts = result_df['출원연도'].value_counts().sort_index()
+                if '출원일' in df_csv.columns:
+                    df_csv['출원연도'] = df_csv['출원일'].astype(str).str[:4]
+                    year_counts = df_csv['출원연도'].value_counts().sort_index()
                     st.subheader("📊 연도별 출원 건수")
                     st.bar_chart(year_counts)
                 else:
@@ -92,6 +99,6 @@ if uploaded_file:
             else:
                 st.warning("🔍 해당 키워드에 대한 결과가 없습니다.")
     else:
-        st.error("❌ CSV 또는 엑셀 파일을 읽을 수 없습니다. 파일 인코딩과 형식을 확인해 주세요.")
+        st.error("❌ 파일을 읽을 수 없습니다. 인코딩 또는 형식 문제일 수 있습니다.")
 else:
-    st.info("📌 먼저 특허 데이터 CSV 또는 Excel 파일을 업로드해 주세요.")
+    st.info("📌 먼저 CSV 또는 Excel 파일을 업로드해주세요.")
