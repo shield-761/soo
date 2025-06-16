@@ -1,6 +1,13 @@
 import streamlit as st
 import pandas as pd
 
+# 파일 미리보기
+st.text("🔍 파일 내용 미리보기")
+preview = uploaded_file.read(500).decode('utf-8', errors='ignore')
+st.code(preview)
+uploaded_file.seek(0)  # 다시 읽기 위해 위치 초기화
+
+
 # ✅ CSV 기반 특허 검색 함수
 def search_patents_from_csv(df, keyword, num_of_rows=20):
     # 키워드 필터링
