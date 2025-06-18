@@ -22,24 +22,16 @@ if uploaded_file:
         st.error("❌ CSV 파일을 읽는 데 실패했습니다.")
     else:
         df.columns = df.columns.str.strip()
-        st.write("📌 현재 CSV 컬럼명:", df.columns.tolist())  # 여기서 확인 가능
+        st.write("📌 현재 CSV 컬럼명:", df.columns.tolist())
 
-        # 컬럼 자동 추론
-        station_col = None
-        pm10_col = None
-        for col in df.columns:
-            if 'station' in col.lower() or '지역' in col:
-                station_col = col
-            if 'pm10' in col.lower() or '미세먼지' in col:
-                pm10_col = col
+        station_col = st.selectbox("📍 측정소(지역) 컬럼 선택", options=df.columns.tolist())
+        pm10_col = st.selectbox("🌫️ 미세먼지(PM10) 컬럼 선택", options=df.columns.tolist())
 
-        if not station_col or not pm10_col:
-            st.error("❌ '측정소(station)'와 '미세먼지(pm10)' 관련 컬럼을 찾지 못했습니다.")
-        else:
-            st.success(f"✅ 컬럼 자동 인식: '{station_col}' / '{pm10_col}'")
+        if station_col and pm10_col:
+            st.success(f"✅ 선택된 컬럼: {station_col} / {pm10_col}")
             st.dataframe(df[[station_col, pm10_col]])
 
-            st.subheader("📊 지역별 미세먼지 농도 (막대 그래프)")
+            st.subheader("📊 지역별 미세먼지 농도")
             df_sorted = df.sort_values(pm10_col, ascending=False)
             st.bar_chart(data=df_sorted, x=station_col, y=pm10_col)
 else:
