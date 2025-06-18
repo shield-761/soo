@@ -24,11 +24,8 @@ if uploaded_file:
 
     df.columns = df.columns.str.strip()  # 컬럼명 공백 제거
 
-    # ✅ 소수점 14자리까지 표시 설정
-    pd.set_option("display.precision", 14)
-
     st.subheader("📄 데이터 미리보기")
-    st.dataframe(df.head())
+    st.dataframe(df.head())  # 기본 미리보기
 
     # 위도/경도/시설명 컬럼 자동 탐색
     lat_col = next((c for c in df.columns if '위도' in c or 'lat' in c.lower()), None)
@@ -44,9 +41,12 @@ if uploaded_file:
     df[lon_col] = pd.to_numeric(df[lon_col], errors='coerce')
     df = df.dropna(subset=[lat_col, lon_col])
 
-    # ✅ 위도/경도 값 점검
-    if df[lat_col].nunique() < 5 and df[lon_col].nunique() < 5:
-        st.warning("⚠️ 위도/경도 값이 대부분 동일합니다. 좌표에 소수점이 잘린 것은 아닌지 확인해보세요.")
+    # ✅ 위도/경도 값 소수점 14자리로 포맷된 테이블 추가 출력
+    preview_df = df[[name_col, lat_col, lon_col]].copy()
+    preview_df[lat_col] = preview_df[lat_col].map(lambda x: f"{x:.14f}")
+    preview_df[lon_col] = preview_df[lon_col].map(lambda x: f"{x:.14f}")
+    st.subheader("📌 소수점 14자리 위도/경도")
+    st.table(preview_df.head())
 
     # 전체 대피소 지도 표시
     st.subheader("🗺️ 전체 대피소 지도")
@@ -77,7 +77,6 @@ if uploaded_file:
     # 지역 필터 입력
     region = st.text_input("🏘️ 지역명 입력 (예: 경기도 양주시)").strip()
     if region:
-        # 공백 제거 후 포함 여부로 필터
         filtered_df = df[df.apply(lambda row: region.replace(" ", "") in str(row).replace(" ", ""), axis=1)]
 
         if filtered_df.empty:
