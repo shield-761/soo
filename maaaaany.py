@@ -48,6 +48,7 @@ if uploaded_file:
                 region_df[lon_col] = pd.to_numeric(region_df[lon_col], errors='coerce')
 
                 st.subheader("📍 지도에서 대피소 위치 확인")
+
                 st.pydeck_chart(pdk.Deck(
                     map_style='mapbox://styles/mapbox/light-v10',
                     initial_view_state=pdk.ViewState(
@@ -60,8 +61,8 @@ if uploaded_file:
                         pdk.Layer(
                             'ScatterplotLayer',
                             data=region_df,
-                            get_position=f'[{lon_col}, {lat_col}]',  # 문자열로 전달 (수정된 부분)
-                            get_color='[0, 128, 255, 160]',
+                            get_position=f"[{lon_col!r}, {lat_col!r}]",  # ✅ 고침
+                            get_color='[255, 0, 0, 160]',
                             get_radius=100,
                         ),
                     ],
