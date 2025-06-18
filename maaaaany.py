@@ -21,8 +21,8 @@ if uploaded_file:
         st.stop()
 
     df.columns = df.columns.str.strip()
-    
-    # 컬럼 자동 탐색
+
+    # 자동으로 컬럼 찾기
     lat_col = next((c for c in df.columns if '위도' in c or 'lat' in c.lower()), None)
     lon_col = next((c for c in df.columns if '경도' in c or 'lon' in c.lower()), None)
     name_col = next((c for c in df.columns if '시설명' in c or '이름' in c or '명칭' in c), None)
@@ -31,7 +31,6 @@ if uploaded_file:
         st.error("위도/경도 컬럼을 찾을 수 없습니다.")
         st.stop()
 
-    # 좌표 처리
     df[lat_col] = pd.to_numeric(df[lat_col], errors='coerce')
     df[lon_col] = pd.to_numeric(df[lon_col], errors='coerce')
     df = df.dropna(subset=[lat_col, lon_col])
@@ -47,6 +46,7 @@ if uploaded_file:
             st.success(f"{region} 지역 대피소 {len(filtered_df)}개 표시됨")
             st.dataframe(filtered_df[[name_col, lat_col, lon_col]])
 
+            # ✅ 이 부분의 괄호 오류 수정됨
             st.pydeck_chart(pdk.Deck(
                 map_style='mapbox://styles/mapbox/light-v9',
                 initial_view_state=pdk.ViewState(
@@ -60,12 +60,15 @@ if uploaded_file:
                         "ScatterplotLayer",
                         data=filtered_df,
                         get_position=f"[{lon_col!r}, {lat_col!r}]",
-                        get_color='[255, 0, 0, 200]',  # 빨간색 마커
+                        get_color='[255, 0, 0, 200]',  # 빨간색
                         get_radius=300,
                         pickable=True
                     )
                 ],
                 tooltip={
-                    "html": f"<b>대피소 이름:</b> {{{name_col}}}",
+                    "html": f"<b>대피소 이름:</b> {{{{{name_col}}}}}",
                     "style": {"color": "black", "fontSize": "14px"}
                 }
+            ))
+else:
+    st.info("CSV 파일을 먼저 업로드해 주세요.")
