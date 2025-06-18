@@ -37,11 +37,11 @@ if uploaded_file:
     df[lon_col] = pd.to_numeric(df[lon_col], errors='coerce')
     df = df.dropna(subset=[lat_col, lon_col])
 
-    # 위도/경도 소수점 14자리 문자열 추가
-    df["위도_정밀"] = df[lat_col].map(lambda x: f"{x:.14f}")
-    df["경도_정밀"] = df[lon_col].map(lambda x: f"{x:.14f}")
+    # 위도/경도 소수점 14자리 문자열 열 추가 (미리 계산!)
+    df["위도_정밀"] = df[lat_col].apply(lambda x: f"{x:.14f}")
+    df["경도_정밀"] = df[lon_col].apply(lambda x: f"{x:.14f}")
 
-    # 지도 표시에 맞게 열 이름 변경
+    # 지도 표시용 열 이름 변경
     map_df = df.rename(columns={lat_col: "lat", lon_col: "lon"})
 
     st.subheader("📄 데이터 미리보기 (위도·경도 14자리)")
@@ -60,11 +60,12 @@ if uploaded_file:
             st.warning(f"❗ '{region}' 지역의 대피소를 찾을 수 없습니다.")
         else:
             st.success(f"✅ '{region}' 지역 대피소 {len(filtered_df)}개 표시됨")
-            filtered_df["위도_정밀"] = filtered_df["lat"].map(lambda x: f"{x:.14f}")
-            filtered_df["경도_정밀"] = filtered_df["lon"].map(lambda x: f"{x:.14f}")
-            st.dataframe(filtered_df[[name_col, "위도_정밀", "경도_정밀"]])
 
+            # 지도 표시에 맞게 열 이름 재지정
+            filtered_map_df = filtered_df.rename(columns={lat_col: "lat", lon_col: "lon"})
+
+            st.dataframe(filtered_df[[name_col, "위도_정밀", "경도_정밀"]])
             st.subheader("🗺️ 지역 대피소 지도")
-            st.map(filtered_df.rename(columns={lat_col: "lat", lon_col: "lon"}))
+            st.map(filtered_map_df)
 else:
     st.info("📎 먼저 CSV 파일을 업로드해 주세요.")
