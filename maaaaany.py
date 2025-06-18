@@ -37,35 +37,27 @@ if uploaded_file:
     df[lon_col] = pd.to_numeric(df[lon_col], errors='coerce')
     df = df.dropna(subset=[lat_col, lon_col])
 
-    # 위도/경도 소수점 14자리 문자열 열 추가 (미리 계산!)
-    df["위도_정밀"] = df[lat_col].apply(lambda x: f"{x:.14f}")
-    df["경도_정밀"] = df[lon_col].apply(lambda x: f"{x:.14f}")
+    # 지도 표시용 열 통일
+    df = df.rename(columns={lat_col: "lat", lon_col: "lon"})
 
-    # 지도 표시용 열 이름 변경
-    map_df = df.rename(columns={lat_col: "lat", lon_col: "lon"})
-
-    st.subheader("📄 데이터 미리보기 (위도·경도 14자리)")
-    st.dataframe(df[[name_col, "위도_정밀", "경도_정밀"]])
+    st.subheader("📄 데이터 미리보기")
+    st.dataframe(df[[name_col, "lat", "lon"]])
 
     st.subheader("🗺️ 전체 대피소 지도")
-    st.map(map_df)
+    st.map(df)
 
     # 지역 필터 입력
     region = st.text_input("🏘️ 지역명 입력 (예: 경기도 양주시)").strip()
     if region:
-        # 공백 제거 후 포함 여부로 필터
         filtered_df = df[df.apply(lambda row: region.replace(" ", "") in str(row).replace(" ", ""), axis=1)]
 
         if filtered_df.empty:
             st.warning(f"❗ '{region}' 지역의 대피소를 찾을 수 없습니다.")
         else:
             st.success(f"✅ '{region}' 지역 대피소 {len(filtered_df)}개 표시됨")
+            st.dataframe(filtered_df[[name_col, "lat", "lon"]])
 
-            # 지도 표시에 맞게 열 이름 재지정
-            filtered_map_df = filtered_df.rename(columns={lat_col: "lat", lon_col: "lon"})
-
-            st.dataframe(filtered_df[[name_col, "위도_정밀", "경도_정밀"]])
             st.subheader("🗺️ 지역 대피소 지도")
-            st.map(filtered_map_df)
+            st.map(filtered_df)
 else:
     st.info("📎 먼저 CSV 파일을 업로드해 주세요.")
