@@ -23,6 +23,10 @@ if uploaded_file:
         st.stop()
 
     df.columns = df.columns.str.strip()  # 컬럼명 공백 제거
+
+    # ✅ 소수점 14자리까지 표시 설정
+    pd.set_option("display.precision", 14)
+
     st.subheader("📄 데이터 미리보기")
     st.dataframe(df.head())
 
