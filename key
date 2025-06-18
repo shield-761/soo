@@ -1,2 +1,1 @@
-# 📁 .streamlit/secrets.toml
-API_KEY = "tJYB/P5zTt6sJJL5OKg9sf3VpXO=nw/73SYo9Q8U3U4="
+KAKAO_API_KEY = "9ed2bc61bc0f8302f1dbb74ef5a102b2"
