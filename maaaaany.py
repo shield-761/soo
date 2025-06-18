@@ -60,7 +60,7 @@ if uploaded_file:
                         pdk.Layer(
                             'ScatterplotLayer',
                             data=region_df,
-                            get_position=[lon_col, lat_col],  # ✅ 수정된 부분
+                            get_position=f'[{lon_col}, {lat_col}]',  # 문자열로 전달 (수정된 부분)
                             get_color='[0, 128, 255, 160]',
                             get_radius=100,
                         ),
