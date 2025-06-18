@@ -22,10 +22,7 @@ if uploaded_file:
         st.error("❌ 파일을 읽을 수 없습니다. 인코딩 확인 필요")
         st.stop()
 
-    # 컬럼 정리: 공백 및 '(도)' 제거
-    df.columns = df.columns.str.strip()
-    df.rename(columns=lambda x: x.replace('(도)', '').strip(), inplace=True)
-
+    df.columns = df.columns.str.strip()  # 컬럼명 공백 제거
     st.subheader("📄 데이터 미리보기")
     st.dataframe(df.head())
 
@@ -42,6 +39,10 @@ if uploaded_file:
     df[lat_col] = pd.to_numeric(df[lat_col], errors='coerce')
     df[lon_col] = pd.to_numeric(df[lon_col], errors='coerce')
     df = df.dropna(subset=[lat_col, lon_col])
+
+    # ✅ 위도/경도 값 점검
+    if df[lat_col].nunique() < 5 and df[lon_col].nunique() < 5:
+        st.warning("⚠️ 위도/경도 값이 대부분 동일합니다. 좌표에 소수점이 잘린 것은 아닌지 확인해보세요.")
 
     # 전체 대피소 지도 표시
     st.subheader("🗺️ 전체 대피소 지도")
